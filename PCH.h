@@ -26,9 +26,21 @@ namespace stl {
 	template<typename T, std::size_t N>
 	inline void write_call(REL::ID id)
 	{
+		F4SE::AllocTrampoline(256);
+
 		auto& trampoline = F4SE::GetTrampoline();
 
 		T::fn = trampoline.write_call<N>(id.address() + T::offset, T::thunk);
+	}
+
+	template<typename T, std::size_t N>
+	inline void write_call(REL::ID id, std::ptrdiff_t offset)
+	{
+		F4SE::AllocTrampoline(256);
+
+		auto& trampoline = F4SE::GetTrampoline();
+
+		T::fn = trampoline.write_call<N>(id.address() + offset, T::thunk);
 	}
 
 	template<typename T>
@@ -42,7 +54,7 @@ namespace stl {
 	template<typename T>
 	inline void write_value(REL::ID id, std::ptrdiff_t offset, T value, std::uint8_t data[], std::size_t size, std::uint32_t index)
 	{
-		REL::Relocation<std::uintptr_t> fn{ id, offset };
+		REL::Relocation<std::uintptr_t> fn(id, offset);
 
 		std::memcpy(&data[index], &value, sizeof value);
 
@@ -51,7 +63,7 @@ namespace stl {
 
 	inline void write_value(REL::ID id, std::ptrdiff_t offset, std::uint8_t data[], std::size_t size)
 	{
-		REL::Relocation<std::uintptr_t> fn{ id, offset };
+		REL::Relocation<std::uintptr_t> fn(id, offset);
 
 		REL::safe_write(fn.address(), data, size);
 	}
