@@ -30,6 +30,7 @@ namespace Settings {
 				"[Main]\n\n"
 				"bDisableAutosave = 0\n"
 				"bDisableQuicksave = 0\n"
+				"bDisableAutoLoad = 0\n"
 				"bSaveGameOnQuitToMainMenu = 1\n"
 				"bSaveGameOnQuitToDesktop = 1\n"
 			);
@@ -42,6 +43,7 @@ namespace Settings {
 
 		INI_GETVALUE(bDisableAutosave, std::stoi, "Main", 0);
 		INI_GETVALUE(bDisableQuicksave, std::stoi, "Main", 0);
+		INI_GETVALUE(bDisableAutoload, std::stoi, "Main", 0);
 		INI_GETVALUE(bSaveGameOnQuitToMainMenu, std::stoi, "Main", 1);
 		INI_GETVALUE(bSaveGameOnQuitToDesktop, std::stoi, "Main", 1);
 

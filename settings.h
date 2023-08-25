@@ -20,6 +20,7 @@ namespace Settings {
 
 		[[nodiscard]] const auto& IsAutosave() const noexcept { return bDisableAutosave; }
 		[[nodiscard]] const auto& IsQuicksave() const noexcept { return bDisableQuicksave; }
+		[[nodiscard]] const auto& IsAutoLoad() const noexcept { return bDisableAutoload; }
 		[[nodiscard]] const auto& IsSaveGameOnQuitToMainMenu() const noexcept { return bSaveGameOnQuitToMainMenu; }
 		[[nodiscard]] const auto& IsSaveGameOnQuitToDesktop() const noexcept { return bSaveGameOnQuitToDesktop; }
 
@@ -36,6 +37,7 @@ namespace Settings {
 
 		bool bDisableAutosave{};
 		bool bDisableQuicksave{};
+		bool bDisableAutoload{};
 		bool bSaveGameOnQuitToMainMenu{};
 		bool bSaveGameOnQuitToDesktop{};
 	};

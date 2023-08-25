@@ -6,20 +6,104 @@
 
 namespace Hook {
 
+	constexpr auto QueueSaveLoadTask = REL::ID(1487308);
 	constexpr auto UpdateQueuedTasks = REL::ID(927422);
 
-	constexpr auto Autosave = REL::ID(1280471);
-	constexpr auto QuickSave = REL::ID(1055666);
+	enum class TaskType : std::uint32_t {
 
-	struct BGSSaveLoadManager__IsSavingAllowed {
+		Nothing,
+		Autosave = 1,
+		Autosave2 = 2,
+		Autoload = 4,
+		QuickSave = 8,
+		SaveGameOnQuitToMainMenu = 16384,
+		SaveGameOnQuitToDesktop = 65536
+	};
 
-		static inline bool thunk([[maybe_unused]] void* BGSSaveLoadManager)
+	struct BGSSaveLoadManager__QueueSaveLoadTask {
+
+		static inline void thunk(void* a_this, TaskType a_type)
 		{
-			return false;
+			auto& settings = Settings::Manager::GetSingleton();
+
+			switch (a_type) {
+
+			case TaskType::Autosave:
+			case TaskType::Autosave2:
+
+				if (settings.IsAutosave())
+					a_type = TaskType::Nothing;
+
+				break;
+
+			case TaskType::QuickSave:
+
+				if (settings.IsQuicksave())
+					a_type = TaskType::Nothing;
+
+				break;
+
+			case TaskType::Autoload:
+				
+				if (settings.IsAutoLoad())
+					a_type = TaskType::Nothing;
+
+				break;
+
+			case TaskType::SaveGameOnQuitToMainMenu:
+			case TaskType::SaveGameOnQuitToDesktop:
+
+				break;
+
+			default:
+
+				logger::info("unknown value : {}", static_cast<std::uint32_t>(a_type));
+			
+				break;
+			}
+
+			a_fn(a_this, a_type);
 		}
 
-		static inline REL::Relocation<decltype(thunk)> fn;
+		static void Install() noexcept
+		{
+			struct QueueSaveLoadTask_Code : Xbyak::CodeGenerator {
+
+				QueueSaveLoadTask_Code()
+				{
+					Xbyak::Label retnLabel;
+
+					mov(ptr[rsp + 0x10], rbx);
+
+					jmp(ptr[rip + retnLabel]);
+
+					L(retnLabel);
+
+					dq(QueueSaveLoadTask.address() + 5);
+				}
+			};
+
+			F4SE::AllocTrampoline(64);
+
+			auto& trampoline = F4SE::GetTrampoline();
+
+			QueueSaveLoadTask_Code code;
+
+			code.ready();
+
+			auto mem = trampoline.allocate(code.getSize());
+			std::memcpy(mem, code.getCode(), code.getSize());
+			a_fn = (QueueSaveLoadTask_Func)mem;
+
+			trampoline.write_branch<5>(QueueSaveLoadTask.address(), BGSSaveLoadManager__QueueSaveLoadTask::thunk);
+		}
+
+		using QueueSaveLoadTask_Func = decltype(&thunk);
+
+		static QueueSaveLoadTask_Func a_fn;
 	};
+
+	BGSSaveLoadManager__QueueSaveLoadTask::QueueSaveLoadTask_Func BGSSaveLoadManager__QueueSaveLoadTask::a_fn;
 
 	void Install() 
 	{
@@ -30,16 +114,19 @@ namespace Hook {
 
 		auto& settings = Settings::Manager::GetSingleton();
 
-		if (settings.IsAutosave()) {
+		BGSSaveLoadManager__QueueSaveLoadTask::Install();
 
-			stl::write_call<BGSSaveLoadManager__IsSavingAllowed, 5>(Autosave, 0x28);
+		if (settings.IsAutoLoad()) {
+
+			logger::info("Autoload disabled!");
+		}
+
+		if (settings.IsAutosave()) {
 		
 			logger::info("Autosave disabled!");
 		}
 
 		if (settings.IsQuicksave()) {
-
-			stl::write_call<BGSSaveLoadManager__IsSavingAllowed, 5>(QuickSave, 0x0c);
 
 			logger::info("Quicksave disabled!");
 		}

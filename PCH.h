@@ -3,6 +3,7 @@
 #pragma warning(push)
 #include "F4SE/F4SE.h"
 #include "RE/Fallout.h"
+#include "xbyak/xbyak.h"
 
 #ifdef NDEBUG
 #	include <spdlog/sinks/basic_file_sink.h>
@@ -26,9 +27,9 @@ namespace stl {
 	template<typename T, std::size_t N>
 	inline void write_call(REL::ID id)
 	{
-		F4SE::AllocTrampoline(256);
-
 		auto& trampoline = F4SE::GetTrampoline();
+
+		F4SE::AllocTrampoline(16);
 
 		T::fn = trampoline.write_call<N>(id.address() + T::offset, T::thunk);
 	}
@@ -36,9 +37,9 @@ namespace stl {
 	template<typename T, std::size_t N>
 	inline void write_call(REL::ID id, std::ptrdiff_t offset)
 	{
-		F4SE::AllocTrampoline(256);
-
 		auto& trampoline = F4SE::GetTrampoline();
+	
+		F4SE::AllocTrampoline(16);
 
 		T::fn = trampoline.write_call<N>(id.address() + offset, T::thunk);
 	}
